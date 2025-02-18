@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Pub Quizzes -BESTVERSION</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8' />
+  <title>Pub Quizzes in Glasgow</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <meta name="mobile-web-app-capable" content="yes">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css" />
+  <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+</head>
+
+<body>
+  <div id="sidebar">
+    <div class="intro">
+      <h2>Pub Quizzes in Glasgow</h2>
+      <p>Find your perfect pub quiz! Use the filters below to find a quiz that fits what you're looking for, or use your mouse to explore all the locations on the map!</p>
+    </div>
+
+    <div class="dropdown">
+      <div class="section-title">Day of Quiz</div>
+      <select id="dayFilter">
+        <option value="all">All Days</option>
+        <option value="Sunday">Sunday</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+      </select>
+    </div>
+
+    <div class="dropdown">
+      <div class="section-title">Start Time</div>
+      <select id="timeFilter">
+        <option value="all">All Times</option>
+        <option value="5:00pm">5:00 pm</option>
+        <option value="6:00pm">6:00 pm</option>
+        <option value="6:30pm">6:30 pm</option>
+        <option value="7:00pm">7:00 pm</option>
+        <option value="7:30pm">7:30 pm</option>
+        <option value="7:45pm">7:45 pm</option>
+        <option value="8:00pm">8:00 pm</option>
+        <option value="8:15pm">8:15 pm</option>
+        <option value="8:30pm">8:30 pm</option>
+        <option value="8:45pm">8:45 pm</option>
+        <option value="9:00pm">9:00 pm</option>
+        <option value="9:30pm">9:30 pm</option>
+      </select>
+    </div>
+
+    <div class="dropdown">
+      <div class="section-title">Free Entry</div>
+      <select id="freeEntryFilter">
+        <option value="all">All</option>
+        <option value="free">Free to Enter</option>
+        <option value="no">Pay to Enter</option>
+      </select>
+    </div>
+
+    <div class="dropdown">
+      <div class="section-title">Smartphone Quiz</div>
+      <select id="smartphoneQuizFilter">
+        <option value="all">All</option>
+        <option value="yes">Yes</option>
+        <option value="no">No (or not listed) </option>
+      </select>
+    </div>
+    <div class="intro">
+      <p>Data was derived from <a href=https://pubquizzy.com/pub-quizzes-by-area/glasgow-the-west /> Pub Quizzy </a> and updated to reflect quizzes currently on offer. Full dataset used can be downloaded <a href="PubQuizLocsFix.csv" download="GlasgowPubQuizzes.csv">here</a>. </p>
+    </div>
+  </div>
+
+  <div id='map'></div>
+
+</body>
+
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>
