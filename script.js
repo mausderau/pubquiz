@@ -21,16 +21,6 @@ map.on("load", () => {
     type: "geojson",
     data: data_url
   });
-
-  map.addLayer({
-    id: "pubquizlocs-layer",
-    type: "symbol",            // symbol for icons
-    source: "pubquizlocsfix",
-    layout: {
-      "icon-image": "question-mark-15", // your pink question mark from the style
-      "icon-size": 1.5
-    }
-  });
   
 map.on("load", () => {
   setupPopups("pubquizlocslocsfix");
