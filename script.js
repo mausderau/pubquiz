@@ -14,23 +14,40 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-    // 1. Re-add the fetch logic that worked before (when blue dots appeared)
-    const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
-    const layerID = "pubquizdata-override"; // Use a unique name for this test
+    // This URL must be the corrected path to your GeoJSON file.
+    const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
+    
+    // Use a clean, consistent ID for all JS interactions
+    const layerID = "quiz-locations-interactive"; 
 
     fetch(data_url)
-        .then(r => r.json())
+        .then(r => {
+            // Check for success before parsing JSON
+            if (!r.ok) throw new Error(`HTTP error! Status: ${r.status}`);
+            return r.json();
+        })
         .then(data => {
-            // 2. Add Source and a simple Layer via JS
-            map.addSource("pubquizdata-source", { type: "geojson", data });
+            // 1. Add Source via JS (this is where the data comes from)
+            map.addSource("quiz-data-source", { 
+                type: "geojson", 
+                data 
+            });
+
+            // 2. Add Layer via JS (this links the data source to the map)
+            // The paint properties here are redundant because the style URL overrides them,
+            // but the addLayer call is NECESSARY to make the data appear and be targetable.
             map.addLayer({
                 id: layerID,
                 type: "circle",
-                source: "pubquizdata-source",
-                paint: { "circle-radius": 8, "circle-color": "#ff0000" } // Red circles for clear visibility
+                source: "quiz-data-source",
+                paint: { 
+                    // Set a transparent color/radius; Studio style will override this.
+                    "circle-radius": 1, 
+                    "circle-color": "transparent" 
+                }
             });
 
-            // 3. Attach functions to this temporary layer
+            // 3. Attach functions to the new Layer ID
             setupPopups(layerID);
             setupFiltering(layerID);
             map.on('mouseenter', layerID, () => {
@@ -40,9 +57,8 @@ map.on("load", () => {
                 map.getCanvas().style.cursor = '';
             });
         })
-        .catch(e => console.error("Error loading GeoJSON for override:", e));
+        .catch(e => console.error("Error loading GeoJSON:", e));
 });
-
 function setupPopups(layerID) { // <--- Add argument here
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
   const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
