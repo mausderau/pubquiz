@@ -78,7 +78,15 @@ function applyFilters() {
   if (day !== "all") filters.push(["==", ["get", "DayofQuiz"], day]);
   if (time !== "all") filters.push(["==", ["get", "QuizStartTime"], time]);
   if (free !== "all") filters.push(free === "free" ? ["==", ["get", "EntryCost"], "free"] : ["!=", ["get", "EntryCost"], "free"]);
-  if (phone !== "all") filters.push(["==", ["get", "SmartphoneQuiz"], phone]);
+ // Smartphone filter: treat anything other than "yes" as "no"
+if (phone !== "all") {
+  filters.push([
+    "case",
+    ["==", ["downcase", ["get", "SmartphoneQuiz"]], "yes"], // matches "yes"
+    phone.toLowerCase() === "yes",  // keep if selecting "yes"
+    phone.toLowerCase() === "no"    // keep if selecting "no"
+  ]);
+}
 
   map.setFilter("pubquizlocs", filters);
 }
