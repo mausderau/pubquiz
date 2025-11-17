@@ -74,19 +74,44 @@ function applyFilters() {
   const free = document.getElementById("freeEntryFilter").value;
   const phone = document.getElementById("smartphoneQuizFilter").value;
 
+  // Start with the "all" operator
   const filters = ["all"];
-  if (day !== "all") filters.push(["==", ["get", "DayofQuiz"], day]);
-  if (time !== "all") filters.push(["==", ["get", "QuizStartTime"], time]);
-  if (free !== "all") filters.push(free === "free" ? ["==", ["get", "EntryCost"], "free"] : ["!=", ["get", "EntryCost"], "free"]);
- // Smartphone filter: treat anything other than "yes" as "no"
-if (phone !== "all") {
-  filters.push([
-    "case",
-    ["==", ["downcase", ["get", "SmartphoneQuiz"]], "yes"], // matches "yes"
-    phone.toLowerCase() === "yes",  // keep if selecting "yes"
-    phone.toLowerCase() === "no"    // keep if selecting "no"
-  ]);
-}
 
-  map.setFilter("pubquizlocs", filters);
+  // Day Filter
+  if (day !== "all") {
+    filters.push(["==", ["get", "DayofQuiz"], day]);
+  }
+
+  // Time Filter
+  if (time !== "all") {
+    filters.push(["==", ["get", "QuizStartTime"], time]);
+  }
+
+  // Free Entry Filter
+  if (free !== "all") {
+    filters.push(
+      free === "free" 
+        ? ["==", ["get", "EntryCost"], "free"] 
+        : ["!=", ["get", "EntryCost"], "free"]
+    );
+  }
+
+  // Smartphone Filter (Fixed Logic)
+  if (phone !== "all") {
+    const isCheckingForYes = phone.toLowerCase() === "yes";
+    
+    // Create an expression that checks if the data says "yes" (case insensitive)
+    const dataIsYes = ["==", ["downcase", ["get", "SmartphoneQuiz"]], "yes"];
+
+    if (isCheckingForYes) {
+      // User wants "Yes", so data must match "yes"
+      filters.push(dataIsYes);
+    } else {
+      // User wants "No", so data must NOT match "yes"
+      filters.push(["!", dataIsYes]);
+    }
+  }
+
+  // Apply the combined filters
+  map.setFilter("pubquizlocs", filters.length > 1 ? filters : null);
 }
