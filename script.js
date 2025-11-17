@@ -14,7 +14,7 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-  const layerID = "pubquizlocsfix"; 
+  const layerID = "pubquizlocsfresh"; 
   setupPopups(layerID);
   setupFiltering(layerID);
   map.on('mouseenter', layerID, () => {
