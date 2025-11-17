@@ -1,32 +1,51 @@
-mapboxgl.accessToken = "pk.eyJ1IjoibWF1ZGVyYXVpIiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3IweTFiZGY1OTcifQ.J_AuOGPRTgESe7otKIRdmw";
 
-const map = new mapboxgl.Map({
-  container: "map",
-  style: "mapbox://styles/mausderau/cm6rzbdio014m01pbcbhs9drt",
-  center: [-4.2518, 55.8642],
-  zoom: 10.5
-  fadeDuration: 0,
-  pitchWithRotate: false
-});
+// WAIT FOR MAPBOX GL TO LOAD
+function waitForMapbox(callback) {
+  if (window.mapboxgl && window.mapboxgl.Map) {
+    callback();
+  } else {
+    requestAnimationFrame(() => waitForMapbox(callback));
+  }
+}
+waitForMapbox(initMap);
 
-map.addControl(new mapboxgl.NavigationControl());
-map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-right");
-map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl }), "top-right");
-map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
+// MAIN MAP INITIALIZER
+function initMap() {
+  mapboxgl.accessToken = "pk.eyJ1IjoibWF1ZGVyYXVpIiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3IweTFiZGY1OTcifQ.J_AuOGPRTgESe7otKIRdmw";
 
-map.on("load", () => {
-  map.resize();
-  setTimeout(() => map.resize(), 350);
-});  
+  const map = (window.map = new mapboxgl.Map({
+    container: "map",
+    style: "mapbox://styles/mausderau/cm6rzbdio014m01pbcbhs9drt",
+    center: [-4.2518, 55.8642],
+    zoom: 10.5,
+    fadeDuration: 0,
+    pitchWithRotate: false
+  }));
 
-const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
-fetch(DATA_URL)
-  .then(r => r.json())
-  .then(data => initLayers(data))
-  .catch(err => console.error("GeoJSON Load Error:", err));
+  map.addControl(new mapboxgl.NavigationControl());
+  map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-right");
+  map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl }), "top-right");
+  map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
+  // important: fix Lighthouse disappearing map
+  map.on("load", () => {
+    map.resize();
+    setTimeout(() => map.resize(), 350);
+  });
 
-// INITIALIZE LAYERS + POPUPS
+  loadData();
+}
+
+// LOAD GEOJSON + INIT LAYERS
+
+function loadData() {
+  const DATA_URL = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+
+  fetch(DATA_URL)
+    .then(r => r.json())
+    .then(data => initLayers(data))
+    .catch(err => console.error("GeoJSON Load Error:", err));
+}
 
 function initLayers(data) {
   map.addSource("pubquizlocs", { type: "geojson", data });
@@ -46,7 +65,7 @@ function initLayers(data) {
 }
 
 
-// POPUPS 
+// POPUPS
 
 function initPopups() {
   let hoverPopup = new mapboxgl.Popup({
@@ -60,7 +79,6 @@ function initPopups() {
     className: "click-popup"
   });
 
-  // Reuse a single global feature reference
   map.on("mousemove", "pubquizlocs", e => {
     const feature = e.features?.[0];
     if (!feature) return;
@@ -98,7 +116,7 @@ function buildPopupHTML(p) {
 }
 
 
-// FILTERING (Optimized & Debounced)
+// FILTERING (DEBOUNCED)
 
 function initFiltering() {
   const filterIds = [
@@ -140,12 +158,10 @@ function applyFilters() {
   map.setFilter("pubquizlocs", filterExpr);
 }
 
-// Helper to get select value
 function val(id) {
   return document.getElementById(id).value;
 }
 
-// Generic debounce utility
 function debounce(fn, delay) {
   let timer;
   return (...args) => {
