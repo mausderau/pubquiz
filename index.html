@@ -5,23 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pub Quizzes in Glasgow</title>
 
-  <!-- Stylesheets -->
+  <!-- CSS -->
   <link rel="stylesheet" href="./style.css">
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
 
-  <!-- Scripts -->
+  <!-- Mapbox JS -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
   <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
 </head>
-
 <body>
   <div id="sidebar">
     <div class="intro">
       <h2>Pub Quizzes in Glasgow</h2>
-      <p>Find your perfect pub quiz! Use the filters below to find a quiz that fits what you're looking for, or use your mouse to explore all the locations on the map!</p>
+      <p>Find your perfect pub quiz! Use the filters below or explore all locations on the map.</p>
     </div>
 
     <div class="dropdown">
@@ -60,7 +59,7 @@
       <select id="freeEntryFilter">
         <option value="all">All</option>
         <option value="free">Free to Enter</option>
-        <option value="no">Pay to Enter</option>
+        <option value="paid">Pay to Enter</option>
       </select>
     </div>
 
@@ -69,12 +68,13 @@
       <select id="smartphoneQuizFilter">
         <option value="all">All</option>
         <option value="yes">Yes</option>
-        <option value="no">No (or not listed)</option>
+        <option value="no">No</option>
       </select>
     </div>
 
     <div class="intro">
-      <p>Data was derived from <a href="https://pubquizzy.com/pub-quizzes-by-area/glasgow-the-west">Pub Quizzy</a> and updated to reflect quizzes currently on offer. Full dataset can be downloaded <a href="PubQuizLocsFix.csv" download="GlasgowPubQuizzes.csv">here</a>.</p>
+      <p>Data from <a href="https://pubquizzy.com/pub-quizzes-by-area/glasgow-the-west">Pub Quizzy</a>. 
+      Download full dataset <a href="PubQuizLocsFix-3.geojson" download>here</a>.</p>
     </div>
   </div>
 
