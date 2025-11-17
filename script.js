@@ -24,10 +24,10 @@ map.on("load", () => {
 
   map.addLayer({
     id: "pubquizlocsfix",
-    type: "symbol", // use symbol so your pink question markers appear from the style
+    type: "symbol",
     source: "pubquizlocsfix",
     layout: {
-      "icon-image": "question-15", // replace with your style's icon name if different
+      "icon-image": "question-mark-svgrepo-com (1)"
       "icon-size": 1.5
     }
   });
