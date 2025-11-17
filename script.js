@@ -39,7 +39,7 @@ map.on("load", () => {
                     // Use the confirmed icon name
                     'icon-image': iconName, 
                     'icon-allow-overlap': true,
-                    'icon-size': 1.0 
+                    'icon-size': 0.25 
                 }
             });
 
