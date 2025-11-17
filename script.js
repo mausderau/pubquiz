@@ -2,7 +2,7 @@ mapboxgl.accessToken = "pk.eyJ1IjoibWF1c2RlcmF1IiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3Iwe
 
 const map = new mapboxgl.Map({
   container: "map",
-  style: "mapbox://styles/mausderau/pubquislocs-copy",
+  style: "mapbox://styles/mausderau/pubquizlocs-copy", // your pink question mark style
   center: [-4.2518, 55.8642],
   zoom: 10.5
 });
@@ -13,42 +13,40 @@ map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-
 map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl }), "top-right");
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
-// Load GeoJSON for filtering and popups
+// Load GeoJSON data as a separate source
 const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix%20(3).geojson";
-let geoData = null;
 
-map.on("load", async () => {
-  try {
-    const response = await fetch(data_url);
-    geoData = await response.json();
-  } catch (err) {
-    console.error("GeoJSON Load Error:", err);
-    return;
-  }
+map.on("load", () => {
+  map.addSource("pubquizlocs-data", {
+    type: "geojson",
+    data: data_url
+  });
 
-  const layerId = "pubquizlocsfix";
-
-  setupPopups(layerId);
-  setupFilters(layerId);
+  // Setup popups and filters using this source
+  setupPopups("pubquizlocs-data");
+  setupFilters("pubquizlocs-data");
 });
 
-function setupPopups(layerId) {
+function setupPopups(sourceId) {
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
   const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
 
-  map.on("mousemove", layerId, e => {
-    const feature = e.features?.[0];
-    if (!feature) return;
-    hoverPopup.setLngLat(e.lngLat).setHTML(`<h3>${feature.properties.PubName}</h3>`).addTo(map);
+  map.on("mousemove", e => {
+    const features = map.querySourceFeatures(sourceId, { filter: ["==", ["get", "PubName"], e.features?.[0]?.properties.PubName] });
+    if (!features.length) return;
+    const f = features[0];
+    hoverPopup.setLngLat(f.geometry.coordinates)
+      .setHTML(`<h3>${f.properties.PubName}</h3>`)
+      .addTo(map);
   });
 
-  map.on("mouseleave", layerId, () => hoverPopup.remove());
+  map.on("mouseleave", e => hoverPopup.remove());
 
-  map.on("click", layerId, e => {
-    const p = e.features?.[0]?.properties;
-    if (!p) return;
-    clickPopup
-      .setLngLat(e.lngLat)
+  map.on("click", e => {
+    const features = map.querySourceFeatures(sourceId, { filter: ["==", ["get", "PubName"], e.features?.[0]?.properties.PubName] });
+    if (!features.length) return;
+    const p = features[0].properties;
+    clickPopup.setLngLat(features[0].geometry.coordinates)
       .setHTML(`
         <h3>${p.PubName}</h3>
         <p>Address: ${p.PubAddress}</p>
@@ -63,16 +61,14 @@ function setupPopups(layerId) {
   });
 }
 
-function setupFilters(layerId) {
+function setupFilters(sourceId) {
   ["dayFilter", "timeFilter", "freeEntryFilter", "smartphoneQuizFilter"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("change", () => applyFilters(layerId));
+    const element = document.getElementById(id);
+    if (element) element.addEventListener("change", () => applyFilters(sourceId));
   });
 }
 
-function applyFilters(layerId) {
-  if (!geoData) return;
-
+function applyFilters(sourceId) {
   const day = document.getElementById("dayFilter").value;
   const time = document.getElementById("timeFilter").value;
   const free = document.getElementById("freeEntryFilter").value;
@@ -87,6 +83,6 @@ function applyFilters(layerId) {
   );
   if (phone !== "all") filters.push(["==", ["get", "SmartphoneQuiz"], phone]);
 
-  map.setFilter(layerId, filters);
+  // Use Mapbox filter on the source layer
+    map.setFilter("pubquizlocsfix", filters); 
 }
-
