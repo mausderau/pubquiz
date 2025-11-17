@@ -13,35 +13,37 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-    // 1. CONFIRM YOUR GEOJSON URL HERE (Using the URL that worked before)
+    // 1. CONFIRMED WORKING URL and LAYER ID
     const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
+    const layerID = "quiz-locations-final-js"; 
     
-    // 2. DEFINE THE INTERACTIVE LAYER ID (Using the name from the working diagnostic)
-    const layerID = "pubquizdata-override"; 
+    // Confirmed Icon Name
+    const iconName = "question-mark-svgrepo-com (1)"; 
 
     fetch(data_url)
         .then(r => {
+            // Error handling check
             if (!r.ok) throw new Error(`HTTP error! Status: ${r.status}`);
             return r.json();
         })
         .then(data => {
-            // 3. ADD SOURCE
-            map.addSource("pubquizdata-source", { type: "geojson", data });
+            // 2. ADD SOURCE
+            map.addSource("quiz-data-source-js", { type: "geojson", data });
 
-            // 4. ADD LAYER AND FORCE ICON STYLING VIA JAVASCRIPT
-            // Using 'symbol' type to explicitly display the icon.
+            // 3. ADD LAYER and FORCE ICON STYLING
             map.addLayer({
                 id: layerID,
-                type: "symbol", 
-                source: "pubquizdata-source",
+                type: "symbol", // Use 'symbol' for custom icons/markers
+                source: "quiz-data-source-js",
                 layout: {
-                    'icon-image': 'question-mark-svgrepo-com (1)', 
+                    // Use the confirmed icon name
+                    'icon-image': iconName, 
                     'icon-allow-overlap': true,
                     'icon-size': 1.0 
                 }
             });
 
-            // 5. ATTACH FUNCTIONS
+            // 4. ATTACH FUNCTIONS
             setupPopups(layerID);
             setupFiltering(layerID);
             map.on('mouseenter', layerID, () => {
@@ -51,7 +53,12 @@ map.on("load", () => {
                 map.getCanvas().style.cursor = '';
             });
         })
-        .catch(e => console.error("CRITICAL ERROR: Failed to load interactive GeoJSON.", e));
+        .catch(e => {
+            console.error("CRITICAL ERROR: Failed to load interactive GeoJSON.", e);
+            // Optionally alert the user if the fetch failed again
+            // alert("Data loading failed. Check console for details.");
+        });
+        
 });
 
 function setupPopups(layerID) { // <--- Add argument here
