@@ -6,7 +6,6 @@ const map = new mapboxgl.Map({
   center: [-4.2518, 55.8642],
   zoom: 10.5
 });
-// --- EVERYTHING ELSE REMAINS THE SAME ---
 
 map.addControl(new mapboxgl.NavigationControl());
 map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-right");
@@ -14,40 +13,35 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-    // This URL must be the corrected path to your GeoJSON file.
+    // 1. CONFIRM YOUR GEOJSON URL HERE
     const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
     
-    // Use a clean, consistent ID for all JS interactions
-    const layerID = "quiz-locations-interactive"; 
+    // 2. DEFINE THE INTERACTIVE LAYER ID
+    const layerID = "quiz-locations-final-js"; 
 
     fetch(data_url)
         .then(r => {
-            // Check for success before parsing JSON
+            // Error handling check
             if (!r.ok) throw new Error(`HTTP error! Status: ${r.status}`);
             return r.json();
         })
         .then(data => {
-            // 1. Add Source via JS (this is where the data comes from)
-            map.addSource("quiz-data-source", { 
-                type: "geojson", 
-                data 
-            });
+            // 3. ADD SOURCE
+            map.addSource("quiz-data-source-js", { type: "geojson", data });
 
-            // 2. Add Layer via JS (this links the data source to the map)
-            // The paint properties here are redundant because the style URL overrides them,
-            // but the addLayer call is NECESSARY to make the data appear and be targetable.
+            // 4. ADD LAYER AND FORCE ICON STYLING VIA JAVASCRIPT
             map.addLayer({
                 id: layerID,
-                type: "circle",
-                source: "quiz-data-source",
-                paint: { 
-                    // Set a transparent color/radius; Studio style will override this.
-                    "circle-radius": 1, 
-                    "circle-color": "transparent" 
+                type: "symbol", // Use 'symbol' for custom icons/markers
+                source: "quiz-data-source-js",
+                layout: {
+                    'icon-image': 'question-mark-svgrepo-com (1)', 
+                    'icon-allow-overlap': true,
+                    'icon-size': 1.0 
                 }
             });
 
-            // 3. Attach functions to the new Layer ID
+            // 5. ATTACH FUNCTIONS
             setupPopups(layerID);
             setupFiltering(layerID);
             map.on('mouseenter', layerID, () => {
@@ -57,8 +51,9 @@ map.on("load", () => {
                 map.getCanvas().style.cursor = '';
             });
         })
-        .catch(e => console.error("Error loading GeoJSON:", e));
+        .catch(e => console.error("CRITICAL ERROR: Failed to load interactive GeoJSON.", e));
 });
+
 function setupPopups(layerID) { // <--- Add argument here
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
   const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
