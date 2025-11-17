@@ -17,14 +17,14 @@ map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "to
 const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix%20(3).geojson";
 
 map.on("load", () => {
-  map.addSource("pubquizlocs-data", {
+  map.addSource("pubquizlocsfix", {
     type: "geojson",
     data: data_url
   });
 
   // Setup popups and filters using this source
-  setupPopups("pubquizlocs-data");
-  setupFilters("pubquizlocs-data");
+  setupPopups("pubquizlocsfix");
+  setupFilters("pubquizlocsfix");
 });
 
 function setupPopups(sourceId) {
