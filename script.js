@@ -14,17 +14,33 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-  const layerID = "pubquizlocsfresh"; 
-  const loadedLayers = map.getStyle().layers.map(layer => layer.id);
-  console.log("All Loaded Layer IDs:", loadedLayers);
-  setupPopups(layerID);
-  setupFiltering(layerID);
-  map.on('mouseenter', layerID, () => {
-      map.getCanvas().style.cursor = 'pointer';
-  });
-  map.on('mouseleave', layerID, () => {
-      map.getCanvas().style.cursor = '';
-  });
+    // 1. Re-add the fetch logic that worked before (when blue dots appeared)
+    const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+    const layerID = "pubquizdata-override"; // Use a unique name for this test
+
+    fetch(data_url)
+        .then(r => r.json())
+        .then(data => {
+            // 2. Add Source and a simple Layer via JS
+            map.addSource("pubquizdata-source", { type: "geojson", data });
+            map.addLayer({
+                id: layerID,
+                type: "circle",
+                source: "pubquizdata-source",
+                paint: { "circle-radius": 8, "circle-color": "#ff0000" } // Red circles for clear visibility
+            });
+
+            // 3. Attach functions to this temporary layer
+            setupPopups(layerID);
+            setupFiltering(layerID);
+            map.on('mouseenter', layerID, () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', layerID, () => {
+                map.getCanvas().style.cursor = '';
+            });
+        })
+        .catch(e => console.error("Error loading GeoJSON for override:", e));
 });
 
 function setupPopups(layerID) { // <--- Add argument here
