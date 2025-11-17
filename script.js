@@ -5,6 +5,8 @@ const map = new mapboxgl.Map({
   style: "mapbox://styles/mausderau/cm6rzbdio014m01pbcbhs9drt",
   center: [-4.2518, 55.8642],
   zoom: 10.5
+  fadeDuration: 0,
+  pitchWithRotate: false
 });
 
 map.addControl(new mapboxgl.NavigationControl());
@@ -13,76 +15,141 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-  const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+  map.resize();
+  setTimeout(() => map.resize(), 350);
+});  
 
-  fetch(data_url)
-    .then(r => r.json())
-    .then(data => {
-      map.addSource("pubquizlocs", { type: "geojson", data });
-      map.addLayer({
-        id: "pubquizlocs",
-        type: "circle",
-        source: "pubquizlocs",
-        paint: { "circle-radius": 6, "circle-color": "#007cbf" }
-      });
+const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+fetch(DATA_URL)
+  .then(r => r.json())
+  .then(data => initLayers(data))
+  .catch(err => console.error("GeoJSON Load Error:", err));
 
-      setupPopups();
-      setupFiltering();
-    })
-    .catch(e => console.error("Error loading GeoJSON:", e));
-});
 
-function setupPopups() {
-  const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
-  const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
+// INITIALIZE LAYERS + POPUPS
 
-  map.on("mousemove", "pubquizlocs", e => {
-    if (!e.features.length) return;
-    const f = e.features[0];
-    hoverPopup.setLngLat(e.lngLat).setHTML(`<h3>${f.properties.PubName}</h3>`).addTo(map);
+function initLayers(data) {
+  map.addSource("pubquizlocs", { type: "geojson", data });
+
+  map.addLayer({
+    id: "pubquizlocs",
+    type: "circle",
+    source: "pubquizlocs",
+    paint: {
+      "circle-radius": 6,
+      "circle-color": "#007cbf"
+    }
   });
+
+  initPopups();
+  initFiltering();
+}
+
+
+// POPUPS 
+
+function initPopups() {
+  let hoverPopup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    className: "hover-popup"
+  });
+
+  let clickPopup = new mapboxgl.Popup({
+    closeButton: true,
+    className: "click-popup"
+  });
+
+  // Reuse a single global feature reference
+  map.on("mousemove", "pubquizlocs", e => {
+    const feature = e.features?.[0];
+    if (!feature) return;
+
+    hoverPopup
+      .setLngLat(e.lngLat)
+      .setHTML(`<h3>${feature.properties.PubName}</h3>`)
+      .addTo(map);
+  });
+
   map.on("mouseleave", "pubquizlocs", () => hoverPopup.remove());
 
   map.on("click", "pubquizlocs", e => {
-    if (!e.features.length) return;
-    const p = e.features[0].properties;
+    const p = e.features?.[0]?.properties;
+    if (!p) return;
+
     clickPopup
       .setLngLat(e.lngLat)
-      .setHTML(`
-        <h3>${p.PubName}</h3>
-        <p>Address: ${p.PubAddress}</p>
-        <p>Quiz Day: ${p.DayofQuiz}</p>
-        <p>Start Time: ${p.QuizStartTime}</p>
-        <p>Frequency: ${p.Frequency}</p>
-        <p>Entry Cost: ${p.EntryCost}</p>
-        <p>Smartphone Quiz: ${p.SmartphoneQuiz}</p>
-        <p>Website: <a href="${p.PubWebsite}" target="_blank">${p.PubWebsite}</a></p>
-      `)
+      .setHTML(buildPopupHTML(p))
       .addTo(map);
   });
 }
 
-function setupFiltering() {
-  ["dayFilter", "timeFilter", "freeEntryFilter", "smartphoneQuizFilter"].forEach(id => {
+function buildPopupHTML(p) {
+  return `
+    <h3>${p.PubName}</h3>
+    <p><strong>Address:</strong> ${p.PubAddress}</p>
+    <p><strong>Quiz Day:</strong> ${p.DayofQuiz}</p>
+    <p><strong>Start Time:</strong> ${p.QuizStartTime}</p>
+    <p><strong>Frequency:</strong> ${p.Frequency}</p>
+    <p><strong>Entry Cost:</strong> ${p.EntryCost}</p>
+    <p><strong>Smartphone Quiz:</strong> ${p.SmartphoneQuiz}</p>
+    <p><strong>Website:</strong> <a href="${p.PubWebsite}" target="_blank">${p.PubWebsite}</a></p>
+  `;
+}
+
+
+// FILTERING (Optimized & Debounced)
+
+function initFiltering() {
+  const filterIds = [
+    "dayFilter",
+    "timeFilter",
+    "freeEntryFilter",
+    "smartphoneQuizFilter"
+  ];
+
+  filterIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("change", applyFilters);
+    if (el) el.addEventListener("change", debounce(applyFilters, 120));
   });
 }
 
 function applyFilters() {
-  const day = document.getElementById("dayFilter").value;
-  const time = document.getElementById("timeFilter").value;
-  const free = document.getElementById("freeEntryFilter").value;
-  const phone = document.getElementById("smartphoneQuizFilter").value;
+  const day = val("dayFilter");
+  const time = val("timeFilter");
+  const free = val("freeEntryFilter");
+  const phone = val("smartphoneQuizFilter");
 
-  const filters = ["all"];
+  const filterExpr = ["all"];
 
-  if (day !== "all") filters.push(["==", ["get", "DayofQuiz"], day]);
-  if (time !== "all") filters.push(["==", ["get", "QuizStartTime"], time]);
+  if (day !== "all") filterExpr.push(["==", ["get", "DayofQuiz"], day]);
+  if (time !== "all") filterExpr.push(["==", ["get", "QuizStartTime"], time]);
+
   if (free !== "all") {
-    filters.push(free === "free" ? ["==", ["get", "EntryCost"], "free"] : ["!=", ["get", "EntryCost"], "free"]);
+    filterExpr.push(
+      free === "free"
+        ? ["==", ["get", "EntryCost"], "free"]
+        : ["!=", ["get", "EntryCost"], "free"]
+    );
   }
-  if (phone !== "all") filters.push(["==", ["get", "SmartphoneQuiz"], phone]);
 
-  map.setFilter("pubquizlocs", filters);
+  if (phone !== "all") {
+    filterExpr.push(["==", ["get", "SmartphoneQuiz"], phone]);
+  }
+
+  map.setFilter("pubquizlocs", filterExpr);
+}
+
+// Helper to get select value
+function val(id) {
+  return document.getElementById(id).value;
+}
+
+// Generic debounce utility
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
 }
