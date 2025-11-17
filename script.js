@@ -14,7 +14,7 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-  const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+  const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
   fetch(data_url)
     .then(r => r.json())
     .then(data => {
