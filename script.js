@@ -2,7 +2,7 @@ mapboxgl.accessToken = "pk.eyJ1IjoibWF1c2RlcmF1IiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3Iwe
 
 const map = new mapboxgl.Map({
   container: "map",
-  style: "mapbox://styles/mausderau/pubquizlocs-copy", // your pink question mark style
+  style: "mapbox://styles/mausderau/cmi3ky9fe002801ry1qyq148o",
   center: [-4.2518, 55.8642],
   zoom: 10.5
 });
