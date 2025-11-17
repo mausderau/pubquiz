@@ -22,10 +22,21 @@ map.on("load", () => {
     data: data_url
   });
 
-  // Setup popups and filters using this source
-  setupPopups("pubquizlocsfix");
+  map.addLayer({
+    id: "pubquizlocs-layer",
+    type: "symbol",            // symbol for icons
+    source: "pubquizlocsfix",
+    layout: {
+      "icon-image": "question-mark-15", // your pink question mark from the style
+      "icon-size": 1.5
+    }
+  });
+  
+map.on("load", () => {
+  setupPopups("pubquizlocslocsfix");
   setupFilters("pubquizlocsfix");
 });
+
 
 function setupPopups(sourceId) {
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
