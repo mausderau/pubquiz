@@ -14,36 +14,31 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-  const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
-  fetch(data_url)
-    .then(r => r.json())
-    .then(data => {
-      map.addSource("pubquizlocs", { type: "geojson", data });
-      map.addLayer({
-        id: "pubquizlocs",
-        type: "circle",
-        source: "pubquizlocs",
-        paint: { "circle-radius": 6, "circle-color": "#007cbf" }
-      });
-      setupPopups();
-      setupFiltering();
-    })
-    .catch(e => console.error("Error loading GeoJSON:", e));
+  const layerID = "pubquizlocsfix"; 
+  setupPopups(layerID);
+  setupFiltering(layerID);
+  map.on('mouseenter', layerID, () => {
+      map.getCanvas().style.cursor = 'pointer';
+  });
+  map.on('mouseleave', layerID, () => {
+      map.getCanvas().style.cursor = '';
+  });
 });
 
-function setupPopups() {
+function setupPopups(layerID) { // <--- Add argument here
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
   const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
 
-  map.on("mousemove", "pubquizlocs", e => {
+  // Use layerID variable instead of "pubquizlocs" string
+  map.on("mousemove", layerID, e => {
     if (!e.features.length) return;
     const f = e.features[0];
     hoverPopup.setLngLat(e.lngLat).setHTML(`<h3>${f.properties.PubName}</h3>`).addTo(map);
   });
 
-  map.on("mouseleave", "pubquizlocs", () => hoverPopup.remove());
+  map.on("mouseleave", layerID, () => hoverPopup.remove());
 
-  map.on("click", "pubquizlocs", e => {
+  map.on("click", layerID, e => {
     if (!e.features.length) return;
     const p = e.features[0].properties;
     clickPopup.setLngLat(e.lngLat)
@@ -61,7 +56,9 @@ function setupPopups() {
   });
 }
 
-function setupFiltering() {
+let targetLayerID = "";
+function setupFiltering(layerID) {
+  targetLayerID = layerID; // Save the ID
   ["dayFilter", "timeFilter", "freeEntryFilter", "smartphoneQuizFilter"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("change", applyFilters);
@@ -112,6 +109,7 @@ function applyFilters() {
     }
   }
 
-  // Apply the combined filters
-  map.setFilter("pubquizlocs", filters.length > 1 ? filters : null);
+  if (targetLayerID) {
+      map.setFilter(targetLayerID, filters.length > 1 ? filters : null);
+  }
 }
