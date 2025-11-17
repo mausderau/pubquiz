@@ -13,27 +13,27 @@ map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl:
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
 map.on("load", () => {
-    // 1. CONFIRM YOUR GEOJSON URL HERE
+    // 1. CONFIRM YOUR GEOJSON URL HERE (Using the URL that worked before)
     const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFresh.geojson";
     
-    // 2. DEFINE THE INTERACTIVE LAYER ID
-    const layerID = "quiz-locations-final-js"; 
+    // 2. DEFINE THE INTERACTIVE LAYER ID (Using the name from the working diagnostic)
+    const layerID = "pubquizdata-override"; 
 
     fetch(data_url)
         .then(r => {
-            // Error handling check
             if (!r.ok) throw new Error(`HTTP error! Status: ${r.status}`);
             return r.json();
         })
         .then(data => {
             // 3. ADD SOURCE
-            map.addSource("quiz-data-source-js", { type: "geojson", data });
+            map.addSource("pubquizdata-source", { type: "geojson", data });
 
             // 4. ADD LAYER AND FORCE ICON STYLING VIA JAVASCRIPT
+            // Using 'symbol' type to explicitly display the icon.
             map.addLayer({
                 id: layerID,
-                type: "symbol", // Use 'symbol' for custom icons/markers
-                source: "quiz-data-source-js",
+                type: "symbol", 
+                source: "pubquizdata-source",
                 layout: {
                     'icon-image': 'question-mark-svgrepo-com (1)', 
                     'icon-allow-overlap': true,
