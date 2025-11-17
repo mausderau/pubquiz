@@ -1,12 +1,12 @@
 mapboxgl.accessToken = "pk.eyJ1IjoibWF1c2RlcmF1IiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3IweTFiZGY1OTcifQ.J_AuOGPRTgESe7otKIRdmw";
 
+// Initialize the map
 const map = new mapboxgl.Map({
   container: "map",
-  style: "mapbox://styles/mausderau/cmi3ky9fe002801ry1qyq148o", 
+  style: "mapbox://styles/mausderau/cmi3ky9fe002801ry1qyq148o", // Your Mapbox style with pink question marks
   center: [-4.2518, 55.8642],
   zoom: 10.5
 });
-
 
 // Controls
 map.addControl(new mapboxgl.NavigationControl());
@@ -14,7 +14,7 @@ map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-
 map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl }), "top-right");
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
-// Correct URL for your file
+// GeoJSON source URL
 const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix%20(3).geojson";
 
 map.on("load", () => {
@@ -26,13 +26,15 @@ map.on("load", () => {
         data
       });
 
+      // ---- Key change: use a symbol layer with your style’s custom icon ----
       map.addLayer({
         id: "pubquizlocs",
-        type: "circle",
+        type: "symbol",
         source: "pubquizlocs",
-        paint: {
-          "circle-radius": 6,
-          "circle-color": "#007cbf"
+        layout: {
+          "icon-image": "pink-question-15", // <-- matches your Mapbox style icon
+          "icon-size": 1.5,
+          "icon-allow-overlap": true
         }
       });
 
@@ -42,6 +44,7 @@ map.on("load", () => {
     .catch(err => console.error("GeoJSON Load Error:", err));
 });
 
+// Popups remain unchanged
 function setupPopups() {
   const hoverPopup = new mapboxgl.Popup({
     closeButton: false,
@@ -88,6 +91,7 @@ function setupPopups() {
   });
 }
 
+// Filters remain unchanged
 function setupFilters() {
   ["dayFilter", "timeFilter", "freeEntryFilter", "smartphoneQuizFilter"]
     .forEach(id => {
@@ -102,20 +106,10 @@ function applyFilters() {
   const free = document.getElementById("freeEntryFilter").value;
   const phone = document.getElementById("smartphoneQuizFilter").value;
 
-  // Reset filters
   const filterArray = ["all"];
 
-  // Day filter
-  if (day !== "all") {
-    filterArray.push(["==", ["get", "DayofQuiz"], day]);
-  }
-
-  // Time filter
-  if (time !== "all") {
-    filterArray.push(["==", ["get", "QuizStartTime"], time]);
-  }
-
-  // Free/paid filter
+  if (day !== "all") filterArray.push(["==", ["get", "DayofQuiz"], day]);
+  if (time !== "all") filterArray.push(["==", ["get", "QuizStartTime"], time]);
   if (free !== "all") {
     filterArray.push(
       free === "free"
@@ -123,12 +117,7 @@ function applyFilters() {
         : ["!=", ["get", "EntryCost"], "free"]
     );
   }
+  if (phone !== "all") filterArray.push(["==", ["get", "SmartphoneQuiz"], phone]);
 
-  // Smartphone filter
-  if (phone !== "all") {
-    filterArray.push(["==", ["get", "SmartphoneQuiz"], phone]);
-  }
-
-  // Apply filter to map
   map.setFilter("pubquizlocs", filterArray);
 }
