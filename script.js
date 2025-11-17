@@ -39,7 +39,7 @@ function initMap() {
 // LOAD GEOJSON + INIT LAYERS
 
 function loadData() {
-  const DATA_URL = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix-3.geojson";
+  const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix%20(3).geojson";
 
   fetch(DATA_URL)
     .then(r => r.json())
