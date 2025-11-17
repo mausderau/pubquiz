@@ -15,6 +15,8 @@ map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "to
 
 map.on("load", () => {
   const layerID = "pubquizlocsfresh"; 
+  const loadedLayers = map.getStyle().layers.map(layer => layer.id);
+  console.log("All Loaded Layer IDs:", loadedLayers);
   setupPopups(layerID);
   setupFiltering(layerID);
   map.on('mouseenter', layerID, () => {
