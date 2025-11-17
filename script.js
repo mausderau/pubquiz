@@ -1,8 +1,10 @@
-mapboxgl.accessToken = "pk.eyJ1IjoibWF1c2RlcmF1IiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3IweTFiZGY1OTcifQ.J_AuOGPRTgESe7otKIRdmw";
+// Mapbox access token
+mapboxgl.accessToken = "pk.eyJ1IjoibWF1IjoibWF1ZGVyYXVpIiwiYSI6ImNtNXdkdnB5ZjA3aW8ya3IweTFiZGY1OTcifQ.J_AuOGPRTgESe7otKIRdmw";
 
+// Initialize the map
 const map = new mapboxgl.Map({
   container: "map",
-  style: "mapbox://styles/mausderau/cmi3ky9fe002801ry1qyq148o",
+  style: "mapbox://styles/mausderau/cmi3ky9fe002801ry1qyq148o", // your style with pink question marks
   center: [-4.2518, 55.8642],
   zoom: 10.5
 });
@@ -13,41 +15,36 @@ map.addControl(new mapboxgl.GeolocateControl({ trackUserLocation: true }), "top-
 map.addControl(new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl }), "top-right");
 map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "top-right");
 
-// Load GeoJSON data as a separate source
-const data_url = "https://raw.githubusercontent.com/mausderau/quizdata/main/PubQuizLocsFix%20(3).geojson";
+// Layer ID of your pink question mark symbols
+const PUB_LAYER_ID = "pubquizlocsfix";
 
 map.on("load", () => {
-  map.addSource("pubquizlocsfix", {
-    type: "geojson",
-    data: data_url
-  });
-  
-map.on("load", () => {
-  setupPopups("pubquizlocslocsfix");
-  setupFilters("pubquizlocsfix");
+  setupPopups(PUB_LAYER_ID);
+  setupFilters(PUB_LAYER_ID);
 });
 
-
-function setupPopups(sourceId) {
+function setupPopups(layerId) {
   const hoverPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, className: "hover-popup" });
   const clickPopup = new mapboxgl.Popup({ closeButton: true, className: "click-popup" });
 
-  map.on("mousemove", e => {
-    const features = map.querySourceFeatures(sourceId, { filter: ["==", ["get", "PubName"], e.features?.[0]?.properties.PubName] });
-    if (!features.length) return;
-    const f = features[0];
-    hoverPopup.setLngLat(f.geometry.coordinates)
-      .setHTML(`<h3>${f.properties.PubName}</h3>`)
+  // Hover popup
+  map.on("mousemove", layerId, e => {
+    if (!e.features || !e.features.length) return;
+    const feature = e.features[0];
+    hoverPopup
+      .setLngLat(feature.geometry.coordinates)
+      .setHTML(`<h3>${feature.properties.PubName}</h3>`)
       .addTo(map);
   });
 
-  map.on("mouseleave", e => hoverPopup.remove());
+  map.on("mouseleave", layerId, () => hoverPopup.remove());
 
-  map.on("click", e => {
-    const features = map.querySourceFeatures(sourceId, { filter: ["==", ["get", "PubName"], e.features?.[0]?.properties.PubName] });
-    if (!features.length) return;
-    const p = features[0].properties;
-    clickPopup.setLngLat(features[0].geometry.coordinates)
+  // Click popup
+  map.on("click", layerId, e => {
+    if (!e.features || !e.features.length) return;
+    const p = e.features[0].properties;
+    clickPopup
+      .setLngLat(e.lngLat)
       .setHTML(`
         <h3>${p.PubName}</h3>
         <p>Address: ${p.PubAddress}</p>
@@ -62,21 +59,20 @@ function setupPopups(sourceId) {
   });
 }
 
-function setupFilters(sourceId) {
-  ["dayFilter", "timeFilter", "freeEntryFilter", "smartphoneQuizFilter"].forEach(id => {
+function setupFilters(layerId) {
+  ["dayFilter","timeFilter","freeEntryFilter","smartphoneQuizFilter"].forEach(id => {
     const element = document.getElementById(id);
-    if (element) element.addEventListener("change", () => applyFilters(sourceId));
+    if (element) element.addEventListener("change", () => applyFilters(layerId));
   });
 }
 
-function applyFilters(sourceId) {
+function applyFilters(layerId) {
   const day = document.getElementById("dayFilter").value;
   const time = document.getElementById("timeFilter").value;
   const free = document.getElementById("freeEntryFilter").value;
   const phone = document.getElementById("smartphoneQuizFilter").value;
 
   const filters = ["all"];
-
   if (day !== "all") filters.push(["==", ["get", "DayofQuiz"], day]);
   if (time !== "all") filters.push(["==", ["get", "QuizStartTime"], time]);
   if (free !== "all") filters.push(
@@ -84,6 +80,6 @@ function applyFilters(sourceId) {
   );
   if (phone !== "all") filters.push(["==", ["get", "SmartphoneQuiz"], phone]);
 
-  // Use Mapbox filter on the source layer
-    map.setFilter("pubquizlocsfix", filters); 
+  map.setFilter(layerId, filters);
 }
+
