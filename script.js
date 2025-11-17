@@ -18,7 +18,7 @@ function initMap() {
     style: "mapbox://styles/mausderau/cm6rzbdio014m01pbcbhs9drt",
     center: [-4.2518, 55.8642],
     zoom: 10.5,
-    fadeDuration: 0,
+    fade_time: 0,
     pitchWithRotate: false
   }));
 
